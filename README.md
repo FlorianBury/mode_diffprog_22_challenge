@@ -2,28 +2,31 @@
 
 # Data challenge for the 2nd MODE workshop on differentiable programming
 
-## [Crete, 12th-16th of September 2022](https://indico.cern.ch/event/1145124/)
+## Crete, 12th-16th of September 2022 https://indico.cern.ch/event/1145124/
 
-This repo is meant to provide a start ing point for getting up and running with the challenge, and to provide information on the rules et cetera.
+This repo is meant to provide a starting point for getting up and running with the challenge, and to provide information on the rules et cetera.
+
+N.B.: The challenge is open to everyone, however only workshop participants will be eligible for prizes. To participate in the data challenge, either register for the event, or send an email to the organisers with your name. In the end we will invite everyone to give a short summary slide of their approach, which will then be discussed at the workshop and distributed to non-registrants. Following the end of the workshop, we will make the labelled test set available.
 
 For a full introduction to the challenge, please read the challenge introduction slides. To summarise:
 
 - The challenge focusses on imaging with muon tomography
 - Your task is to take 3D predictions for the radiation-length of cosmic muons in voxelised volumes, and convert them to a 3D map of the locations of stone walls buried underground: a voxelwise classification of the voxel material, 0 = soil, 1 = wall.
 - ~100,000 labelled examples are provided, and submissions must be made on ~30,000 unlabelled samples
-- Submissions must be uploaded [here](https://cernbox.cern.ch/index.php/s/ylsOYg9q7hcRk4l) before 23:59:59 CEST on 22/09/04
+- Submissions must be uploaded [here](https://cernbox.cern.ch/index.php/s/ylsOYg9q7hcRk4l) before 23:59:59 CEST on 2022/09/04
     - Submissions must be in HDF5 format in a file name following the pattern `YOUR_NAME_IDXX.h5`
     - `IDXX` is an optional ID number created by you to allow for multiple submissions
     - At the end of the competition, final scores will be evaluated using each participants' predictions with the highest ID number
     - Additionally, every Friday before the end, the current scores on a subsample of predictions will be announced.
 
-The dataset is available for download from [here](https://doi.org/10.5281/zenodo.6866890).
+The dataset is available for download from [here](https://doi.org/10.5281/zenodo.7050560).
 And can be downloaded remotely using, e.g.:
 
 ```bash
 mkdir data
-wget -O data/train.h5 https://zenodo.org/record/6866891/files/train.h5
-wget -O data/test.h5 https://zenodo.org/record/6866891/files/test.h5    
+wget -O data/train.h5 https://zenodo.org/record/7050560/files/train.h5
+wget -O data/test.h5 https://zenodo.org/record/7050560/files/test.h5    
+wget -O data/test_private.h5 https://zenodo.org/record/7050560/files/test_private.h5 
 ```
 
 ## Data format
@@ -42,7 +45,7 @@ The arrays are ordered such that zeroth z layer is the bottom layer of the passi
 It can be read using e.g. the code below:
 
 ```python
-with open('train.h5') as h5:
+with h5py.File('train.h5', 'r') as h5:
     inputs = h5['x0'][()]
     targets = h5['targs'][()]
 ```
@@ -50,7 +53,7 @@ with open('train.h5') as h5:
 The test file only contains the X0 inputs:
 
 ```python
-with open('test.h5') as h5:
+with h5py.File('test.h5', 'r') as h5:
     inputs = h5['x0'][()]
 ```
 
@@ -64,6 +67,22 @@ with h5py.File('MY_NAME_ID00_test_preds.h5', 'w') as h5:
 where `class_preds` is a Numpy array of shape (30036, 10, 10, 10) filled with integer values: 0 for soil voxels, and 1 for wall voxels
 
 For more information HDF5 in python, please refer to the [h5py documentation](https://docs.h5py.org/en/stable/)
+
+### Labelled test set
+
+Following the end of the competition, the dataset has been updated to include the labelled test set, so that in future, people can score their own predictions.
+
+```bash
+wget -O data/test_private.h5 https://zenodo.org/record/7050560/files/test_private.h5 
+```
+
+The private and public splits used in the competition can be recovered using:
+
+```python
+from sklearn.model_selection import train_test_split
+
+pub, pri = train_test_split(targets, test_size=25000, random_state=3452, shuffle=True)
+```
 
 ## Starter notebook
 
